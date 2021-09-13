@@ -1,0 +1,159 @@
+# Experiments{#sec:exps}
+To illustrate the practical relevance of the outlined geometrical approach, we first qualitatively investigate real data sets. In the second part of this section, we quantitatively investigate the anomaly detection performance of several detection methods based on synthetic data.  
+
+## Qualitative analysis of real data{#sec:exps:qual-analysis}
+We start with an in-depth analysis of the \textit{ECG200} data [@bagnall2017great; @olszewski2001generalized], a functional data set with complex structure: it seems to contain subgroups with phase and amplitude variation and different mean functions. As a result, the data set appears visually complex (Figure \ref{fig:ecg}, left). Without the color coding it would be challenging to identify the three subgroups (see lower left plot in Figure \ref{fig:ecg-scatter}). 
+Moreover, there are five left shifted observations (apparent at $t \in [10, 25]$) and a single (partly) vertical shift outlier  (apparent at $t \in [50, 75]$) clearly detectable by the naked eye.
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(fds)
+source(here::here("R/exp_real_qual.R"))
+n_out_ecg <- 20
+```
+
+```{r, echo=FALSE, message=FALSE, fig.cap="\\label{fig:ecg}ECG curves and first two embedding dimensions (of five). Colors highlight subgroups apparent in the embeddings. Potential outliers with 5D-embedding LOF scores (minPts = $0.75n$) in top decile shown in black.", fig.height=3, out.width="100%"}
+
+# define 3 subgroups based on first 2 embedding dims
+# LOF based on MDS
+lof_5d_ecg200 <- lof(emb_out_ecg200, minPts = 0.75 * nrow(emb_out_ecg200))
+lof_5d_ecg200_cutoff <- quantile(lof_5d_ecg200, .9) 
+subgroups_ecg200 <- factor(dplyr::case_when(
+  emb_out_ecg200[, 1] < 0 & emb_out_ecg200[, 2] < 0 & lof_5d_ecg200 < lof_5d_ecg200_cutoff ~ 1,
+  emb_out_ecg200[, 1] < 0 & emb_out_ecg200[, 2] > 0 & lof_5d_ecg200 < lof_5d_ecg200_cutoff ~ 2,
+  emb_out_ecg200[, 1] > 0 & lof_5d_ecg200 < lof_5d_ecg200_cutoff ~ 3,
+  TRUE ~ 4
+))
+subgroup_colors <- c(colorspace::qualitative_hcl(3, "Dynamic")[1:3], alpha("black", .5))
+
+plt_ecg200_subgroups <- 
+  plot_funs(out_ecg200, col = subgroups_ecg200) + scale_colour_manual(values = subgroup_colors) +
+  ggtitle("ECG: functional data") + ylab("x(t)") + xlab("t") +
+  plot_emb(emb_out_ecg200[, 1:2],  col = subgroups_ecg200) + scale_colour_manual(values = subgroup_colors) + 
+  xlab(paste("MDS embedding 1")) + ylab(paste("MDS embedding 2")) +
+  ggtitle("MDS embedding", subtitle = "(first 2 dimensions only)") +
+  plot_layout(widths = c(2,1))
+plt_ecg200_subgroups
+```
+
+Much of the general structure (and the anomaly structure in particular) becomes evident in a 5D MDS embedding. To begin with, in the first two embedding dimensions, depicted on the right-hand side of Figure \ref{fig:ecg}, three subgroups are easily recognizable. Color coding in Figure \ref{fig:ecg} is based on this visualization. It makes apparent that the substructures correspond to two smaller, horizontally shifted subgroups of curves (red: left-shifted, purple: right-shifted), and a central subgroup encompassing the majority of the observations (green). In addition, we computed LOF scores on the 5D embedding coordinates. The observations with LOF scores in the top decile are shown in black in Figure \ref{fig:ecg}, two which the clearly outlying observations belong.  
+More importantly, note that these observations are clearly separated from the rest in a 5D embedding: the five clearly left shifted observations in the fourth embedding dimension and the single vertically shifted observation in the subspace spanned by the first and third embedding dimension: Figure \ref{fig:ecg-scatter} shows a scatterplot matrix of all five embedding dimensions with observations color-coded according to the 5D-embedding LOF scores. The clear left shifted outliers obtain the highest LOF scores due their isolation in the subspaces including the fourth embedding dimension. Note, moreover, that other observations with higher LOF scores appear in peripheral regions of the different subspaces, but they are not as clearly separable as the six observations described before. Regarding Figure \ref{fig:lof-vs-do} A, which shows the `r n_out_ecg` most outlying curves according to the LOF scores, this can be explained by the fact that these other observations stem from one of the two shifted subgroups and can thus be seen as on-manifold outliers, whereas the six other, visually clearly outlying observation are clear off-manifold outliers.  
+
+```{r, echo=FALSE, message=FALSE, fig.cap="\\label{fig:ecg-scatter}ECG data: Scatterplotmatrix of all 5 MDS embedding dimensions and curves, lighter colors for higher LOF score of 5D embeddings.", fig.height=7, out.width="100%"}
+plt_ecg200_embs <- list()
+
+#almost constant dark blue by default otherwise:
+scale_viridis_stretched <-  function(...) scale_color_viridis_c(..., values = seq(0,1, l = 10)^2)
+for (i in 1:4) {
+  for(j in (i+1):5) {
+    p <- plot_emb(emb_out_ecg200[, c(j, i)],  col = lof_5d_ecg200) + 
+      scale_viridis_stretched() + 
+      ggtitle("") +
+      xlab(paste("MDS ", j)) + ylab(paste("MDS ", i))
+    plt_ecg200_embs <- append(plt_ecg200_embs, list(p))
+  }
+}
+plt_ecg200_layout <- " 
+ABCD
+#EFG
+KKHI
+KKLJ
+"
+plt_ecg200_matrix <- 
+  plt_ecg200_embs[[1]] + plt_ecg200_embs[[2]] + plt_ecg200_embs[[3]] + plt_ecg200_embs[[4]] +
+                         plt_ecg200_embs[[5]] + plt_ecg200_embs[[6]] + plt_ecg200_embs[[7]] +
+                                                plt_ecg200_embs[[8]] + plt_ecg200_embs[[9]] +
+                                                                      plt_ecg200_embs[[10]] +
+  plot_funs(out_ecg200, col = lof_5d_ecg200) + 
+    ggtitle("ECG: functional data") + ylab("x(t)") + xlab("t") +
+    scale_viridis_stretched("LOF score") + 
+    theme(legend.position = "right", legend.direction = "vertical") +
+  guide_area() + plot_layout(design = plt_ecg200_layout, guides = "collect")
+plt_ecg200_matrix
+
+n_ms_out <- length(msplot(out_ecg200, plot = FALSE)$outliers)
+r_ms_out <- round(n_ms_out / nrow(out_ecg200) * 100)
+```
+
+We contrast these findings with the results of directional outlyingness [@dai2018multivariate; @dai2019directional], which performs very well (see section \ref{sec:exps:performance}) on simple synthetic data sets. Figure \ref{fig:lof-vs-do} shows the ECG curves color-coded by variation of directional outlyingess (B), the `r n_out_ecg` most outlying curves by variation of directional outlyingness (C) and the observations labeled as outliers by directional outlyingness respectively by the MS-plot (D). First of all, it can be seen that many observations yield high variation of directional outlyingness and observations in the right shifted subgroup obtain most of the highest values. In fact, among the `r n_out_ecg` observations with highest variation of directional outlyingness, only one is from the left shifted group and 13 are from the right-shifted group. Moreover, applying directional outlyingness to this data set results in `r n_ms_out` observations being labeled as outliers, which is about `r r_ms_out` percent of all observations. We would argue that it is questionable whether `r r_ms_out` percent of all observations should be labeled as outliers.  
+In this regard, the ECG data serves as an example which illustrates the advantages of the geometric approach. First of all, it yields readily available visualizations, which reflect much more of the inherent structure of a data set than only anomaly structure. This is specifically important for data with complex structure (i.e., subgroups or multiple modes and large variability). Moreover, it allows to apply well-established and powerful outlier scoring methods like LOF to functional data. 
+This exemplifies that the approach not only improves theoretical understanding and consideration as outlined in the previous section, it also has large practical utility in complex real data settings in which previously proposed methods may not provide useful answers.   
+
+```{r, echo=FALSE, message=FALSE, fig.cap="\\label{fig:lof-vs-do}ECG data: LOF on MDS embeddings in contrast to directional outlyingness", fig.height=7.4, out.width="100%"}
+franks <- frank(emb_out_ecg200, ndim = 5)
+
+plt_funs_lof_outs <- plot_funs(out_ecg200[franks %in% 1:n_out_ecg, ]) 
+plt_funs_lof_scores <- plot_funs(out_ecg200, col = lof(emb_out_ecg200, minPts = 0.75 * nrow(emb_out_ecg200))) + scale_color_viridis(guide = "none")
+
+do <- msplot(out_ecg200, plot = FALSE)
+plt_funs_do_outs <- plot_funs(out_ecg200[do$outliers, ]) 
+plt_funs_do_scores <- plot_funs(out_ecg200, col = do$var_outlyingness) + scale_color_viridis_c(option = "plasma", alpha = .8)
+plt_funs_do_scores2 <- plot_funs(out_ecg200[rank(-do$var_outlyingness) %in% 1:n_out_ecg, ])
+
+plot_grid(
+  plotlist = list(
+    plt_funs_lof_outs + ggtitle(paste0("A: ", n_out_ecg, " most outlying curves by LOF scores based on 5D MDS embedding")) +
+      ylab("x(t)") + xlab("t"),
+    plt_funs_do_scores + ggtitle("B: ECG curves coloured by variation of directional outlyingness") +
+      ylab("x(t)") + xlab("t"),
+    plt_funs_do_scores2  + ggtitle(paste0("C: ", n_out_ecg, " most outlying curves by variation of directional outlyingness")) +
+      ylab("x(t)") + xlab("t"),
+    plt_funs_do_outs + ggtitle(paste0("D: The ", length(do$outliers), "(!) observations labeled as outliers based on MS-Plot")) +
+      ylab("x(t)") + xlab("t")
+  ),
+  ncol = 1
+)
+```
+
+```{r, echo=FALSE}
+lof_5d_ecg200_dir <- lof(out_ecg200, minPts = 0.75 * nrow(emb_out_ecg200))
+score_cor <- cor(lof_5d_ecg200, lof_5d_ecg200_dir, method = "spearman")
+```
+
+In the ECG example, we have seen that a 5D embedding yielded reasonable results and sufficiently reflected many aspects of the data. In particular, the extremely left-shifted observations became clearly separable in the 4th embedding dimension. In appendix \ref{sec:sms} we analyse a synthetic data set in the same way as the ECG data, which yields similar findings. Moreover, note that the Spearman rank correlation between LOF scores computed on the 5D embedding and LOF scores computed directly on the ECG data distances is `r round(score_cor, 2)`. This shows that outlier structure retained in the 5D embedding is highly consistent with the outlier structure in the high dimensional observation space, an important aspect with respect to anomaly scoring methods requiring (low dimensional) tabular inputs.  
+Finally, note that even fewer than five embedding dimensions may suffice to reflect much of the inherent structure. Consider the examples depicted in Figure \ref{fig:real-dat}, which shows the functional observations and the first two embedding dimensions of a corresponding 5D MDS embedding of another four real data sets. The Octane data consist of spectra from 60 gasoline samples [@fds; @kalivas1997two], the Spanish weather data of annual temperature curves of 73 weather stations [@febrero2012fdausc], the Tecator data of spectrometric curves of meat samples [@febrero2012fdausc; @ferraty2006nonparametric], and the Wine data of spectrometric curves of wine samples [@holland1998use; @bagnall2017great]. As before, the observations are colored according to LOF scores based on the 5D embedding. In addition, the 12 observations with highest LOF scores are depicted as triangles. These data sets are much simpler than the ECG data and the first two embedding dimensions already reflect the (outlier) structure fairly accurately:  observations with high LOF scores appear separated in the first two embedding dimensions and more general substructures are revealed as well. The substructure of the weather data is rather obvious already regarding the functional observations, for example, the observations with less variability in terms of temperature, all of which obtain high LOF scores. The substructure of the wine data -- for example the small cluster in the lower part of the embedding -- is much harder to detect based on visualizations of the curves alone. Figure \ref{fig:outliergram-real} in appendix \ref{sec:compare-outliergram} shows results for the "Outliergram" by Aribas-Gil & Romo [@arribas2014shape] for shape outlier detection as well as the magnitude-shape plot method of Dai & Genton [@dai2018multivariate] for these example data sets for comparison. We would argue that the embedding based visualizations offers a much more informative visualization of the structure of these data.  
+Appendix \ref{sec:exps:sensitivity} summarizes a more detailed analysis of the sensitivity of the approach to the choice of the dimensionality of the embedding. We conclude that sensitivity seems to be fairly low. For all 5 real data sets we consider, the rank order of LOF scores is very similar or even identical whether based on 2, 5 or even 20 dimensional embeddings (c.f. Table \ref{tab:cor}).  
+Following Mead [@mead1992review], we quantify the goodness of fit (GOF) for a $d_1$-dimensional MDS embedding as $GOF(d_1) = \frac{\sum_{i=1}^{d_1} \max(0, \lambda_i)}{\sum_{j = 1}^n \max(0, \lambda_j)},$ where $\lambda_k$ are the eigenvalues (sorted in decreasing order) of the $k$th eigenvectors of the centered distance matrix.
+For all of the considered real datasets, a 5D embedding achieved a goodness of fit over 0.8, the four less complex examples even over 0.95 (see Figure \ref{fig:expl-variation}). As a rule of thumb, the embedding dimension does not seem crucial as long as the goodness of fit (GOF) of the embedding is over 0.8 for $L_2$ distances.
+This rule of thumb also yields compelling quantitative performance results, as shown in section \ref{sec:exps:performance}.
+
+
+```{r, echo=FALSE, message=FALSE, fig.cap="\\label{fig:real-dat}Further examples of real functional data colored by LOF score. The 12 most outyling observations depicted as triangles in the embedding.", fig.height=10, out.width="100%"}
+ttl_x_wine <- latex2exp::TeX("t (Spectral range in $cm^{-1}$)")
+plt_lst <- list(
+    plt_funs_oct + ggtitle("Octane data (mean centered)") +
+      scale_x_continuous(name = "t (Wavelength in nm)", labels = seq(900, 1700, length.out = 5)),
+    plt_emb_oct + ggtitle("Octane embedding"),
+    plt_funs_we + ggtitle("Spanish weather data") +
+      scale_x_continuous(name = "t (Day of year)"),
+    plt_emb_we + ggtitle("Spanish weather embedding"),
+    plt_funs_tec + ggtitle("Tecator data (mean centered)") +
+       scale_x_continuous(name = "t (Wavelength in nm)", labels = seq(850, 1050, length.out = 5)),
+    plt_emb_tec + ggtitle("Tecator embedding"),
+    plt_funs_wine + ggtitle("Wine data (mean centered)") + 
+      scale_x_continuous(name = ttl_x_wine, labels = c(899, 1079, 1260, 1440, 1621, 1802)),
+    plt_emb_wine + ggtitle("Wine embedding")
+  )
+
+for (i in seq_along(plt_lst)) {
+  if (i %% 2 == 0) {
+   plt_lst[[i]] <- plt_lst[[i]] + xlab("MDS embedding 1") + ylab("MDS embedding 2") +
+          scale_viridis_stretched(alpha = .8)
+  } else {
+    plt_lst[[i]] <- plt_lst[[i]] + ylab("x(t)") + xlab("t") +
+          scale_viridis_stretched(alpha = .8)
+  }
+}
+
+plts <- lapply(1:4, function(i) {
+    plot_grid(plotlist = 
+                list(plt_lst[[2 * i - 1]], 
+                     plt_lst[[2 * i]]), 
+              nrow = 1)
+})
+
+plot_grid(
+  plotlist = plts, 
+  nrow = 4
+)
+
+```

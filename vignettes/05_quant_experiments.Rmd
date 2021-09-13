@@ -1,0 +1,184 @@
+## Quantitative analysis of synthetic data{#sec:exps:performance}
+In this section we investigate the outlier detection performance quantitatively, based on synthetic data sets for which the true (outlier) structure is known. 
+
+### Methods{#sec:exps:performance:meths} 
+In addition to applying LOF to 5D embeddings and directly to the functional data, we investigate the performance of two "functional data"-specific outlier detection methods: directional outlyingness (DO) [@dai2018multivariate; @dai2019directional] and total variational depth (TV) [@huang2019decomposition].
+We use implementations provided by package `fdaoutlier` [@fdaoutlier] and use the variation of directional outlyingness as returned by function $\verb|dir_out|$  as outlier scores for DO and the total variation depths as returned by function $\verb|total_variation_depth|$ for TV. 
+
+### Data Generating Processes {#sec:exps:performance:mods} 
+The methods are applied to data from four different data generating processes (DGPs), the first two of which are based on the simulation models introduced by Ojo et al.  [@ojo2021outlier] and provided in the corresponding R package $\verb|fdaoutlier|$ [@fdaoutlier].  We also provide the results of additional experiments based on the original DGPs from package `fdaoutlier` in Appendix \ref{sec:quant-fdaoutlier}. However, we consider most of these DGPs as too simple for a realistic assessment, as most methods achieve almost perfect performance on them and we use more complex DGPs here. In both DGP 1 and 2, the inliers from $\verb|simulation_model1|$ from package `fdaoutlier` serve as $\Min$, i.e. the common data generating process. This results in simple functional observations with a positive linear trend.  In addition, $\verb|simulation_model1|$ generates simple shift outliers. Additionally, our DGP 1 also includes shape outliers stemming from $\verb|simulation_model8|$ which serves as $\Man$. In contrast, DGP 2 contains shape outliers from all of the other DGPs in `fdaoutlier`, which means $\Man$ contains observations from several different data generating processes.  
+For DGPs 3 and 4, we define $\Min$ by generating a random, wiggly template function over $[0, 1]$ for each data set, generated from a B-spline basis with 15 or 25 basis functions, respectively, with i.i.d.  $\mathcal N(0,1)$ spline coefficients. Functions in $\Min$ are generated as elastically deformed versions of this template, with random warping functions drawn from the ECDFs of $\text{Beta}(a, b)$ distributions with $a, b \sim U[4, 6]$ (DGP 3) or
+$a, b \sim U[3, 8]$ (DGP 4). Functions in $\Man$ are also generated as elastically deformed versions of this template, with Beta ECDF random warping functions with $a, b \sim U[3, 4]$ for DGP 3 and with 50:50 Beta mixture ECDF random warping functions with $a, b \sim 0.5 U[3, 8]:0.5 U[0.1, 3]$ (DGP 4). Finally, white noise with $\sigma = 0.1, 0.15$, respectively, for DGP 3 and 4 is added to all resulting functions. Appendix \ref{app:dgp-ex} shows visualizations of example data sets drawn from these DGPs.
+
+
+### Performance assessment{#sec:exps:performance:perfs} 
+From these four DGPs we sampled data $B = 500$ times with three different outlier ratios $r \in \{0.1, 0.05, 0.01\}$. Based on the outlier scores, we computed the Area-under-the-ROC-Curve (AUC) as performance measure and report the results over all 500 replications. Note that, for $r \in \{0.1, 0.05\}$, the number of sampled observations is $n = 100$, whereas for $r = 0.01$ we sampled $n =  1000$ observations.  
+
+### Results{#sec:exps:performance:res}  
+First of all, note that LOF directly applied to functional data as well as LOF applied to 5D embeddings yield very similar results. 
+This agrees with our findings in the qualitative analyses. In the following, we simply refer to the geometrical approach and do not distinguish between LOF based on MDS embeddings and LOF applied directly to the functional distance matrix.
+Figure \ref{fig:perf-complex} shows that the geometrical approach is highly competitive with functional-data-specific outlier detection methods. It yields better results than TV for all of the four DGPs and performs at least on par with DO. In comparison to DO it performs better on DGP 1 and DGP 3, on par on DGP 4, worse on DGP 2. Note that DO struggles to detect simple shift outliers: of all methods it performs worst on the first DGP. Similar conclusions can be reported for other settings, where it performs even worse if there are only shift outliers (c.f. Figures \ref{fig:perf-fdaoutlier}, \ref{fig:sms-compare}).  
+In summary, based on the conducted experiments the geometrical approach leads to outlier scoring performances at least on par with specialized functional outlier detection methods even if based on fairly basic methods (MDS with $L_2$ distances and LOF). Going further, our approach can be adapted to specific settings simply by choosing metrics other than $L_2$. As the next section shows, this can improve the outlier detection performance considerably.
+
+```{r exp-comp-perf,  fig.cap="\\label{fig:perf-complex}Distribution of AUC over the 500 replications for the different data generating processes (DGP), outlier detection methods, and outlier rations $r$.", fig.height=7, out.width="100%"}
+load(here::here("data/res_complex_batch_2021-07-29.RData"))
+
+res_md <- res[algorithm == "md_wrapper"]
+res_rest <- res[algorithm != "md_wrapper"]
+
+res_rest <- cbind(res_rest[, -7], do.call(rbind, res_rest$result))
+res_long <- melt(res_rest, id.vars = 1:6, measure.vars = 7:8,
+                 variable.name = "Measure", value.name = "Performance")
+
+fac_col <- c("algorithm", "mod", "r_out")
+res_long[, (fac_col) := lapply(.SD, as.factor), .SDcols = fac_col]
+
+levels(res_long$algorithm) <- c("DO", "MDS+LOF", "TV", "LOF")
+levels(res_long$Measure) <- c("AUC", "TPR")
+levels(res_long$r_out) <- paste(c("n_in = 1000, ", "n_in = 100, ", "n_in = 100, "),
+                                 paste0("r = ", levels(res_long$r_out)))
+levels(res_long$mod) <- c("DGP-3", "DGP-4", "DGP-1", "DGP-2")
+res_long$mod <- factor(res_long$mod, levels = levels(res_long$mod)[c(3, 4, 1, 2)])
+
+##
+res_long$algorithm <- ordered(res_long$algorithm, 
+                              levels =  c("LOF", "MDS+LOF", "TV", "DO"))
+
+meth_colors <- c("navy", "dodgerblue4", "palegreen3", "yellow")
+
+setnames(res_long, c("algorithm", "mod"), c("Method", "Model"))
+
+ggplot(res_long[Measure == "AUC"]) +
+  geom_boxplot(aes(x = Model, y = Performance, color = Method)) +
+  facet_wrap(~ r_out, dir = "v") +
+  theme(legend.position = "top") +
+  ylab("AUC") +
+  xlab("") +
+  scale_color_manual(values = meth_colors)
+  
+```
+
+## General dissimilarity measures and manifold methods{#sec:exps:general-dists}
+
+So far, we have computed MDS embeddings mostly based on $L_2$ distances. In the following we show that the approach is more general. The geometric structure of a data set is captured in the matrix of pairwise distances among observations. Different metrics emphasize different aspects of differences in the data and can thus lead to different geometries. MDS based on $L_2$ distances yielded compelling results in many of the examples considered above, but other distances are likely to lead to better performance in certain settings. To illustrate the effect, we consider two additional settings -- one simulated and one on real data -- in the following. The results are displayed in Figure \ref{fig:metric-vs}.  
+The simulated setting is based on isolated outliers, i.e. observations which deviate from functions in $\Min$ only on small parts of their domain. In such settings, higher order $L_p$ metrics lead to better results, since such metrics amplify the contribution of small segments with large differences to the total distance. We use as an example data generated from $\verb|simulation_model2|$ from package $\verb|fdaoutlier|$. Figure \ref{fig:metric-vs} A shows the AUC values of LOF scores on MDS embeddings based on $L_2$ and $L_{10}$ distances. Again, 500 data sets were generated form the model over different outlier ratios. In contrast to $L_2$-based MDS, using $L_{10}$ distances yields almost perfect detection. In embeddings based on $L_{10}$, isolated outliers are clearly separable in the first two or three embedding dimensions.  
+
+```{r exp-l2vsl10}
+load(here::here("data/res_l2vsl10_batch_2021-08-03.RData"))
+
+res <- res_l2vsl10
+
+res_rest <- cbind(res[, -8], do.call(rbind, res$result))
+res_long <- melt(res_rest, id.vars = 1:7, measure.vars = 8:9, 
+                 variable.name = "Measure", value.name = "Performance")
+
+fac_col <- c("algorithm", "mod", "r_out", "dis")
+res_long[, (fac_col) := lapply(.SD, as.factor), .SDcols = fac_col]
+
+levels(res_long$Measure) <- c("AUC", "TPR")
+levels(res_long$r_out) <- paste(c("n_in = 1000, ", "n_in = 100, ", "n_in = 100, "),
+                                 paste0("r = ", levels(res_long$r_out)))
+levels(res_long$mod) <- "mod-2"
+levels(res_long$dis) <- c("L_10", "L_2")
+
+setnames(res_long, c("algorithm", "mod", "dis"), c("Method", "Model", "Metric"))
+
+nic_ttl <- latex2exp::TeX("Comparing $L_{10}$ and $L_2$ distances on simulated data with isolated outliers.")
+
+plt_metrics_isolates <- 
+  ggplot(res_long[Measure == "AUC"]) +
+    geom_boxplot(aes(x = Metric, y = Performance)) +
+    facet_wrap(~ r_out) +
+    theme(legend.position = "None") +
+    ylab("AUC") +
+    xlab("") +
+    ggtitle(nic_ttl)
+```
+
+```{r exp-arrow}
+load(here::here("data/res_arrow_batch_2021-08-10.RData"))
+
+res_rest <- copy(res_arrow)
+
+res_rest <- cbind(res_rest[, -6], do.call(rbind, res_rest$result))
+res_long <- melt(res_rest, id.vars = 1:5, measure.vars = 6:7,
+                 variable.name = "Measure", value.name = "Performance")
+
+fac_col <- c("algorithm", "r_out", "dis")
+res_long[, (fac_col) := lapply(.SD, as.factor), .SDcols = fac_col]
+
+levels(res_long$algorithm) <- c("MDS+LOF")
+levels(res_long$Measure) <- c("AUC", "TPR")
+levels(res_long$dis) <- c("DTW", "L_2", "Wasserstein")
+levels(res_long$r_out) <- paste0("r = ", levels(res_long$r_out))
+
+setnames(res_long, c("algorithm", "dis"), c("Method", "Distance"))
+
+res_long$r_out <- paste0("n_in = 78, ", res_long$r_out)
+
+nic_ttl <- latex2exp::TeX("Comparing DTW, $L_2$, and Wasserstein distances on Arrowhead data.")
+
+plt_metrics_arrow <- 
+  ggplot(res_long[Measure == "AUC"]) +
+    geom_boxplot(aes(x = Distance, y = Performance)) +
+    facet_wrap(~ r_out) + 
+    theme(legend.position = "None") +
+    ylab("AUC") + 
+    xlab("") +
+    ggtitle(nic_ttl)
+```
+
+```{r metric-plts, fig.cap="\\label{fig:metric-vs}Comparing the effects of different distance measures. Depicted are the distributions of AUC over 500 replications for LOF based on MDS embeddings computed with the respective distance measures for different outlier ratios $r$. \\textbf{A}: Comparing $L_{10}$ and $L_2$ metric on a dataset with isolated outliers generated via simulation model 2 from package fdaoutlier. \\textbf{B}: Comparing DTW, $L_2$, and unnormalized $L_1$-Wasserstein distance measures on real dataset ArrowHead. Note: the DTW distance is not a  metric.", fig.height=5, out.width="100%"}
+plot_grid(plotlist = list(plt_metrics_isolates, plt_metrics_arrow), nrow = 2, labels = c("A", "B"))
+
+```
+
+As a second example, we consider the \textit{ArrowHead} data set [@dau2019ucr; @ye2009time], which contains outlines of three different types of neolithic arrowheads (see Appendix \ref{app:arrow} for visualizations of the data set). Using the 78 structurally similar observations from class "Avonlea" as our data on $\Min$ and sampling outliers from the 126 structurally similar observations from the other two classes, we can compute AUC values based on the given class labels. We generate 500 data sets for each outlier ratio $r \in \{0.05, 0.1\}$. Since there are only 78 observations in class "Avonlea", we do not use $r = 0.01$ for this example. Embeddings are computed using three different dissimilarity measures: the standard $L_2$ metric, the unnormalized $L_1$-Wasserstein metric [@gangbo2019unnormalized], and the Dynamic Time Warping (DTW) distance [@rakthanmanon2012searching]. Note that the DTW distance does not define a proper metric [@lemire2009faster].  
+Figure \ref{fig:metric-vs} B shows that small performance improvements can be achieved in this case if one uses dissimilarity measures that are more appropriate for the comparison of shapes, but not as much as in the isolated outlier example. Note that even though DTW distance is not a proper metric, it improves outlier scoring performance in this example. This indicates that, from a practical perspective, general dissimilarity measures can be sufficient for our approach to work. This opens up further possibilities, as there are many general dissimilarity measures for functional data, for example the semi-metrics introduced by Fuchs et al.  [@fuchs2015nearest]. Overall, these examples illustrate the generality of the approach: using suitable dissimilarity measures can make the respective structural differences more easily distinguishable. 
+
+More complex embedding methods, on the other hand, do not necessarily lead to better or even comparable results as MDS. Figure \ref{fig:perf-uimap} shows the distribution of AUC for embedding methods ISOMAP and UMAP. Both methods require a parameter that controls the neighborhood size used to construct a nearest neighbor graph from which the manifold structure of the data is inferred. The larger this value, the more of the global structure is retained. For both methods, embeddings were computed for very small and very large neighborhood sizes of 5 and 90.  
+The results show that neither method performs better than MDS, UMAP even performs considerably worse. Note that ISOMAP is equivalent to MDS based on the geodesic distances derived from the nearest neighbor graph and the larger the neighborhood size the more similar to direct pairwise distances these geodesic distances become. This is also reflected in the results, as ISOMAP-90 performs better than ISOMAP-5 on average. For DGP-2, ISOMAP-90 slightly outperforms MDS, indicating that more complex manifold methods could improve results somewhat in specific settings.  
+In general, however, these findings confirm the theoretical considerations sketched in section \ref{sec:prelim:methods}. Embedding methods which preserve the geometry of the space $\funspace$ of which $\Min$ and $\Man$ are sub-manifolds, i.e. the ambient space geometry, are more suited for outlier detection than methods which focus on approximating the intrinsic geometry of the manifold(s). Thus, more sophisticated embedding methods which often focus on approximating the intrinsic geometry should not be applied lightly and certainly require careful parameter selection in order to be applicable for outlier detection. Since hyperparameter tuning for unsupervised methods remains an unsolved problem, this is unlikely to be achieved in real-world applications.
+In particular, consider that both UMAP and t-SNE [@van2008visualizing] have been found to be -- in general -- oblivious to local density, which means that clusters of different density in the observation space tend to become clusters of more equal density in the embedding space [@narayan2021assessing]. Although there may exist a parameter setting where this effect is reduced (note that there are now density-preserving versions of t-SNE and and UMAP [@narayan2021assessing]), we are skeptical that outliers can be faithfully represented in such an embedding given the difficulties of hyperparameter tuning in unsupervised settings. Moreover, these methods are not designed to preserve important aspects of the outlier structure. For example, UMAP is subject to a local connectivity constraint which ensures that every observation is at least connected to its nearest neighbor (in more technical terms: that a vertex in the fuzzy graph approximating the manifold is connected by at least one edge with an edge weight equal to one [@mcinnes2020umap]), which makes it unlikely that UMAP can be tuned so that it is able to sensibly embed off-manifold outliers, which should, by definition, not be connected to the common data manifold. The poor performance of UMAP embeddings in our experiments confirms these concerns.
+
+```{r exp-uimap, fig.cap="\\label{fig:perf-uimap}Comparing UMAP and ISOMAP to MDS. UMAP and ISOMAP embeddings have been computed for two different locality parameter values: 5 and 90. Distribution of AUC over 500 replications of the four DGPs for different outlier ratios $r$. AUC computed on LOF scores based on 5D embeddings.", fig.height=6, out.width="100%"}
+load(here::here("data/res_ui_map_batch_2021-08-05.RData"))
+
+res_rest <- copy(res_ui_map)
+res_rest[is.na(k), k := n_neighbors]
+res_rest[, n_neighbors := NULL]
+res_rest[, algorithm := paste0(algorithm, "_", k)]
+res_rest[, k := NULL]
+
+load(here::here("data/res_complex_batch_2021-07-29.RData"))
+
+res_mds <- res[algorithm == "mds_lof_wrapper"]
+
+res_rest <- rbind.data.frame(res_rest, res_mds)
+
+
+res_rest <- cbind(res_rest[, -7], do.call(rbind, res_rest$result))
+res_long <- melt(res_rest, id.vars = 1:6, measure.vars = 7:8,
+                 variable.name = "Measure", value.name = "Performance")
+
+
+fac_col <- c("algorithm", "mod", "r_out")
+res_long[, (fac_col) := lapply(.SD, as.factor), .SDcols = fac_col]
+
+levels(res_long$algorithm) <- c("IMAP-5", "IMAP-90", "MDS", "UMAP-5", "UMAP-90")
+levels(res_long$Measure) <- c("AUC", "TPR")
+levels(res_long$r_out) <- paste(c("n_in = 1000, ", "n_in = 100, ", "n_in = 100, "),
+                                paste0("r = ", levels(res_long$r_out)))
+levels(res_long$mod) <- paste0("DGP-", 1:4)[c(3, 4, 1, 2)]
+res_long$mod <- factor(res_long$mod, levels = c("DGP-1", "DGP-2", "DGP-3", "DGP-4"))
+
+setnames(res_long, c("algorithm", "mod"), c("Method", "Model"))
+
+
+ggplot(res_long[Measure == "AUC"]) +
+  geom_boxplot(aes(x = Model, y = Performance, color = Method)) +
+  facet_wrap(~ r_out, dir = "v") + 
+  theme(legend.position = "top") +
+  ylab("AUC")
+```
+

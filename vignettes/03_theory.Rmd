@@ -1,0 +1,173 @@
+# Functional outlier detection as a manifold learning problem{#sec:theory} 
+
+In this section, we first define two forms of functional outliers from a geometrical view point: off- and on-manifold outliers. We then illustrate how this perspective contains and extends existing outlier taxonomies and how it can be used to formalize a large variety of additional scenarios for functional data with outliers.   
+
+## The two notions of functional outliers: off- and on-manifold
+Our approach to functional outlier detection rests on the *manifold assumption*, i.e., the assumption that observed high-dimensional data are intrinsically low-dimensional. 
+Specifically, we put forth that observed functional data $x(t) \in \funspace$, where $\funspace$ is a function space, arise as the result of a mapping $\phi: \pspace \to \funspace$ from a (low-dimensional) parameter space $\pspace \subset \mathbb{R}^{d_2}$ to $\funspace$, i.e., $x(t) = \phi(\theta)$. 
+Conceptually, a $d_2$-dimensional parameter vector $\theta \in \pspace$ represents a specific combination of values for the modes of variation in the observed functional data, such as level or phase shifts, amplitude variability, class labels and so on. 
+These parameter vectors are drawn from a probability distribution $P$ over $\mathbb{R}^{d_2}$: $\theta_i \sim P \;\forall\; \theta_i \in \pspace,$ with $\Theta = \{\theta : f_P(\theta) > 0\}$ and $f_P$ the density to $P$. 
+Mapping this parameter space to the function space creates a functional manifold $\mathcal{M}_{\pspace, \phi}$ defined by $\phi$ and $\pspace$: $\mathcal{M}_{\pspace, \phi} = \{x(t): x(t) = \phi(\theta) \in \funspace, \theta \in \pspace\} \subset \funspace$, an example is depicted in Figure \ref{fig:framework}. For $\funspace = L^2$ with data from a single functional manifold that is isomorphic to some Euclidean subspace, Chen and Müller [@chen2012nonlinear] develop a notion of a manifold mean and modes of variation. Similarly, Dimelgio et al. [@dimeglio2014robust] develop a robust algorithm for template curve estimation for connected smooth sub-manifolds of $\mathbb{R}^d$.
+
+```{=tex}
+\begin{figure}
+\centering
+\includegraphics{images/framework.png}
+\caption{Functional data from a manifold learning perspective.~Image taken from Herrmann \& Scheipl \citep{herrmann2020unsupervised}. \label{fig:framework}}
+\end{figure}
+```
+
+Unlike these single manifold settings, our conceptualization of outlier detection is based on two functional manifolds. That is, we assume a data set $X = \{x_1(t), \dots, x_n(t)\}$ with $n$ functional observations coming from two separate functional manifolds $\Min = \mathcal{M}_{\Thin, \phin}$ and $\Man = \mathcal{M}_{\Than, \phan}$, with $\mathcal{M}_j \subset \funspace$, $j \in \{\co, \an\}$ and $X \subset \{\Min \cup \Man\}$, with $\Min$ representing the "common" data generating process and $\Man$ containing anomalous data. Moreover, for the purpose of outlier detection and in contrast to the settings with a single manifold described in the referenced literature, we are less concerned with precisely approximating the intrinsic geometry of each manifold. Instead, it is crucial to consider the manifolds $\Min$ and $\Man$ as sub-manifolds of $\funspace$, since we require not just a notion of distance between objects on a single manifold, but also a notion of distance between objects on different manifolds using the metric in $\funspace$. Note that function spaces such as $\mathcal{C}$ or $L^2$ which are commonly assumed in FDA [@cuevas2014partial] are naturally endowed with such a metric structure. Both, $\mathcal{C}(D)$ and all $L^p(D)$ spaces over compact domain $D$ are Banach spaces for $p \geq 1$ and thus also metric spaces [@malkowsky2019advanced].  
+Finally, we assume that we can learn from the data an embedding function $e: \funspace \to \embedspace$ which maps observed functions to a $d_1$-dimensional vector representation $y \in \mathcal{Y} \subset \mathbb{R}^{d_1}$ with $e(x(t)) = y$ which preserves at least the topological structure of $\funspace$ -- i.e., if $\Min$ and $\Man$ are unconnected components of $\funspace$ their images under $e$ are also unconnected in $\embedspace$ -- and ideally yields a close approximation of the ambient geometry of $\funspace$.
+
+**Definition:** *Off- and on-manifold outliers in functional data*  
+Without loss of generality, let $r = \frac{\vert \{x_i(t): x_i(t) \in \Man\} \vert}{\vert \{x_i(t): x_i(t) \in \Min\} \vert}  \lll  1$ be the outlier ratio, i.e. most observations are assumed to stem from $\Min$. Furthermore, let $\Thin$ and $\Than$ follow the distributions $\Pin$ and $\Pan$, respectively. Let $\Omega^*_{\alpha, P}$ be an $\alpha$-minimum volume set of $P$ for some $\alpha \in (0, 1)$, where $\Omega^*_{\alpha, P}$ is defined as a set minimizing the quantile function $V(\alpha) = \inf_{C \in \mathcal{C}}\{\text{Leb}(C): P(C) \geq \alpha\}, 0 < \alpha < 1$} for i.i.d. random variables in $\mathbb{R}^{d}$ with distribution $P$, $\mathcal{C}$ a class of measurable subsets in $\mathbb{R}^{d}$ and Lebesgue measure $\text{Leb}$ [@polonik1997minimum], i.e., $\Omega^*_{\alpha, P}$ is the smallest region containing a probability mass of at least $\alpha$.  
+
+A functional observation $x_i(t) \in X$ is then  
+
+  - an off-manifold outlier if $x_i(t) \in \Man$ and $x_i(t) \notin \Min$. 
+  - an on-manifold outlier if $x_i(t) \in \Min$ and $\theta_i \notin \Omega^*_{\alpha, \Pin}$.  
+
+To paraphrase, we assume that there is a single "common" process generating the bulk of observations on $\Min$, and an "anomalous" process defining structurally different observations on $\Man$. We follow the standard notion of outlier detection in this, which assumes that there are two data generating processes [@ojo2021outlier; @dai2020functional; @zimek2018there]. Note this does not necessarily imply that off-manifold outliers are similar to each other in any way: $\Pan$ could be very widely dispersed and/or $\Man$ could consist of multiple unconnected components representing different kinds of anomalous data.
+The essential assumption here is that the process from which *most* of the observations are generated yields structurally relatively similar data. This is reflected by the notion of the two manifolds $\Min$ and $\Man$ and the ratio $r$. We consider settings with $r \in [0, 0.1]$ as suitable for outlier detection. By definition, the number of on-manifold outliers, i.e., *distributional* outliers on $\Min$ as opposed to the *structural* outliers on $\Man$, only depends on the $\alpha$-level for $\Omega^*_{\alpha, \Pin}$.  
+Note that outlyingness in functional data is often defined only in terms of shape or magnitude, but -- as we will illustrate in the following -- the concept ought to be conceived much more generally. The most important aspect from a practical perspective is that structural differences are reliably reflected in low dimensional representations that can be learned via manifold methods, as we will show in Section \ref{sec:exps}. These methods yield embedding coordinates $y \in \mathcal{Y}$ that capture the structure of data and its outliers.
+
+## Methods{#sec:prelim:methods}  
+
+To illustrate some of the implications of our general perspective on functional outlier detection and showcase its practical utility, we mostly use metric multi-dimensional scaling (MDS) [@cox2008multidimensional] for dimension reduction and local outlier factors (LOF) [@breunig2000lof] for outlier scoring in the following. Note, however, that the proposed approach is not at all limited to these specific methods and many other combinations of outlier detection methods applied to lower dimensional embeddings from manifold learning methods are possible. However, MDS and LOF have some important favorable properties: First of all, both methods are well-understood, widely used and tend to work reliably without extensive tuning since they do not have many hyperparameters. Specifically, LOF only requires a single parameter $\verb|minPts|$ which specifies the number of nearest neighbors used to define the local neighborhoods of the observations, and MDS only requires specification of the embedding dimension.  
+More importantly, our geometric approach rests on the assumption that functional outlier detection can be based on some notion of distance or dissimilarity between functional observations, i.e., that abnormal or outlying observations are separated from the bulk of the data in some ambient (function) space. As MDS optimizes for an embedding which preserves all pairwise distances as closely as possible (i.e., tries to project the data \emph{isometrically}), it also retains a notion of distance between unconnected manifolds in the ambient space. This property of the embedding coordinates retaining the ambient space geometry as much as possible is crucial for outlier detection. This also suggests that manifold learning methods like ISOMAP [@tenenbaum2000global], t-SNE [@van2008visualizing] or UMAP [@mcinnes2020umap], which do not optimize for preservation of \emph{ambient} space geometry via isometric embeddings by default, may require much more careful tuning in order to be used in this way. Our experiments support this theoretical consideration as can be see in Figure \ref{fig:perf-uimap}.
+For LOF, this implies that larger values for $\verb|minPts|$ are to be preferred here, since such LOF scores take into account more of the global ambient space geometry of the data instead of only the local neighborhood structure. In Section \ref{sec:exps}, we show that $\verb|minPts| = 0.75n$, with $n$ the number of functional observations in a data set, seems to be a reliable and useful default for the range of data sets we consider.  
+Two additional aspects need to be pointed out here. First, throughout this paper we compute most distances using the $L_2$ metric. This yields MDS coordinates that are equivalent to standard functional PCA scores (up to rotation). The proposed approach, however, is not restricted to $L_2$ distances. Combining MDS with distances other than $L_2$ yields embedding solutions that are no longer equivalent to PCA scores, and suitable alternative distance measures may yield better results in particular settings. We illustrate this aspect using the $L_{10}$ metric and two phase specific distance measures in section \ref{sec:exps:general-dists}, which we apply to simulated data with isolated outliers and a real data set of outlines of neolithic arrowheads, respectively. Similarly, using alternative manifold learning methods could be beneficial in specific settings, as long as they are able to represent not just local neighborhood structure or on-manifold geometry but also the global ambient space geometry.  
+Second, even though LOF could also be applied directly to the dissimilarity matrix of a functional data set without an intermediate embedding step, most anomaly scoring methods cannot be applied directly to such distance matrices and require tabular data inputs. By using embeddings that accurately reflect the (outlier) structure of a functional data set, any anomaly scoring method requiring tabular data inputs can be applied to functional data as well. In this work, we apply LOF on MDS coordinates to evaluate whether functional data embeddings can faithfully retain the outlier structure. Furthermore, embedding the data before running outlier detection methods often provides large additional value in terms of visualization and exploration, as the ECG data analysis in Section \ref{sec:exps:qual-analysis} shows.  
+
+## Examples of functional outlier scenarios
+
+We can now give precise formalizations of different functional outlier scenarios and investigate corresponding low dimensional representations. In this section we first show the geometrical approach is able to describe existing taxonomies (see Figure \ref{fig:tax}) more consistently and precisely. We then illustrate its ability to formalize a much broader general class of outlier detection scenarios and discuss the choice of distance metric and dimensionality of the embedding.
+
+### Outlier scenarios based on existing taxonomies \newline
+
+**Structure induced by shape:** In the taxonomy depicted in Figure \ref{fig:tax}, top, the common data generating process  is defined by the expectation function $f(t)$. This can be formalized in our geometrical terms as follows: the set of functions defined by the "common process" $f(t)$ defines a functional manifold (in terms of shape), i.e. the structural component is represented by the expectation function of the common process. That means, we can define $\Min = \{x(t): x(t) = \theta f(t) = \phi(\theta, t)\}$ or $\Min = \{x(t): x(t) = f(t) + \theta = \phi(\theta, t), \theta \in \mathbb{R}\}$. More generally, we can also model this jointly with $\Min = \{x(t): \theta_1 f(t) + \theta_2 = \phi(\mathbf{\theta}, t), \mathbf{\theta} = (\theta_1, \theta_2)' \in \mathbb{R}^2\}$. In each case, magnitude and (vertical) shift outliers as defined in the taxonomy correspond to on-manifold outliers in the geometrical approach, as such observations are elements of $\Min$. Isolated and shape outliers, on the other hand, are by definition off-manifold outliers, as long as "$g$ is not related to $f$" is specified as $g \neq \theta f \,\forall\, \theta \in \mathbb{R}$.
+For example, if we define $\Man = \{x(t): x(t) = \theta g(t)\}$, it follows that $\Min \cap \Man = \emptyset$. The same applies to isolated outliers, because $g(t) = f(t) + I_U(t)h(t) \neq \theta_1 f(t) + \theta_2$.  
+Figure \ref{fig:shape-example} shows an example of such an outlier scenario taken from [@hernandez2106kernel]. Following their notation, the two manifolds can be defined as $\Min = \{x(t) \vert x(t) = b + 0.05t + \cos(20\pi t), b \in \mathbb R\}$ and $\Man = \{x(t) \vert x(t) = a + 0.05t + \sin(\pi t^2), a \in \mathbb R\}$ with $t \in [0, 1]$ and $a \sim N(\mu = 5, \sigma = 4)$, $b \sim N(\mu = 5, \sigma = 3)$. Note that the off-manifold outliers lie within the mass of data in the visual representation of the curves, whereas in the low dimensional embedding they are clearly separable.  
+However, we argue that the way *shape* outliers are defined in Figure \ref{fig:tax} is too restrictive, as many isolated outliers clearly differ in shape from the main data, but are not captured by the given definition if shape is considered in terms of "$g$ not related to $f$". In contrast, the geometrical perspective with its concepts of off- and on-manifold outliers reflects that consistently. 
+Another issue with the considered taxonomy concerns horizontal shift outliers $f(t + \alpha)$ or $f(h(t))$. Aribas-Gil and Romo \citep{arribas2015discussion} specifically tackle that aspect in their discussion. They distinguish between situations where "all the curves present horizontal variation" (Case I), which is no outlier scenario for them, and situations where only few phase varying observation are present (Case II), which constitutes an outlier scenario. Again, the geometric perspective allows to reflect that consistently. In appendix \ref{sec:phase-var} we make these two notions explicit by defining manifolds accordingly.  
+
+
+```{r, echo=FALSE, eval=TRUE, fig.cap = "\\label{fig:shape-example}Functional outlier scenario ($n = 54, r = .09$)  with shape variation inducing structural differences. Off-manifold outliers colored in blue, two on-manifold outliers colored in red.", fig.height = 3, out.width="100%"}
+set.seed(1)
+
+t <- 1:500
+x <- t/500
+
+n_in <- 49
+n_out <- 5
+hm <- hm_dat(n_in, n_out)
+
+lbls <- ifelse(seq_len(n_in) %in% c(24, 14), 4, 1)
+lwd <- ifelse(seq_len(n_in) %in% c(24, 14), 1, .1)
+lbls <- c(lbls, rep(3, n_out))
+lwd <- c(lwd, rep(1, n_out))
+d_l2 <- dist(hm)
+emb_mds <- cmdscale(d_l2)
+
+nic_ttl <- latex2exp::TeX("MDS embedding ($L_2$)")
+plt_exp1 <- plot_grid(plotlist = list(
+  plot_funs(hm, col = as.factor(lbls), args = rep(seq(0, 1, length.out = ncol(hm)), nrow(hm))) +
+    scale_color_manual(values = c(scales::alpha("grey", .4), "blue", "red")) +
+    scale_x_continuous(name="t", limits=c(0, 1)) +
+    ylab("x(t)") +
+    ggtitle("Functional data"), 
+  plot_emb(emb_mds, color = as.factor(lbls)) +
+    scale_color_manual(values = c(scales::alpha("grey", .4), "blue", "red")) +
+    xlab(paste("MDS embedding 1")) + 
+    ylab(paste("MDS embedding 2")) +
+    ggtitle(nic_ttl) 
+))
+plt_exp1
+```
+
+### General functional outlier scenarios \newline
+
+\noindent As already noted, the concept of structural difference we propose is much more general.
+It is straight forward to conceptualize other outlier scenarios with induced structure beyond shape.
+Consider the following theoretical example: Given a parameter manifold $\pspace \subset [0, \infty] \times [0, \infty]  \times [0, \infty] \times [0, \infty]$ and an induced functional manifold $\mathcal M = \{f(t); t \in [0, 1]: f(t) = \theta_1 + \theta_2 t^{\theta_3} + I(t \in [\theta_4 \pm .1])\}$. Each dimension of the parameter space controls a different characteristic of the functional manifold: $\theta_1$ the level, $\theta_2$ the magnitude, $\theta_3$ the shape, and $\theta_4$ the presence of an isolated peak around $t = \theta_4$.  
+One can now define a "common" data generating process, i.e. a manifold $\Min$, by holding some of the dimensions of $\pspace$ fixed and only varying the rest, either independently or not. On the other hand, one can define an "anomalous" data generating process, i.e. a structurally different manifold $\Man$, by letting those fixed in $\Min$ vary, or simply setting them to values unequal to those used for $\Min$, or by using different dependencies between parameters than for $\Min$. E.g., if $\theta_1 = \theta_2$ for $\Min$, let $\theta_1 = - \theta_2$ for $\Man$. This implies one can define data generating processes so that any functional characteristic (level, magnitude, shape, "peaks" and their combinations) can be on-manifold or off-manifold outliers, depending on how the "common" data manifold $\Min$ is defined.  
+
+Figure \ref{fig:shift-example} shows a setting in which $\Min$ is defined purely in terms of complex shape variation while $\Man$ contains vertically shifted versions of elements in $\Min$:
+Let $\Min$ be the functional manifold of Beta densities $f_{\text{B}}(t; \theta_1, \theta_2)$ with shape parameters $\theta_1, \theta_2 \in [1, 2]$, and let $\Man$ be the functional manifold of Beta densities with shape parameters $\theta_1, \theta_2 \in [1, 2]$ shifted vertically by some scalar quantity $\theta_3 \in [0, 0.5]$, that is $\Min = \{f(t); t \in [0, 1]: f(t) = f_{\text{B}}(t; \theta_1, \theta_2)\}$ with $\Thin = [1, 2]^2$ and $\Man = \{f(t); t \in [0, 1]: f(t) = f_{\text{B}}(t; \theta_1, \theta_2) + \theta_3\}$ with $\Than = \Thin \times [0, 0.5]$. 
+
+```{r theory-vert-shift, echo=FALSE, eval=TRUE, fig.cap = "\\label{fig:shift-example}Functional outlier scenario ($n = 100, r = .1$) with vertical shifts inducing structural differences. MDS embeddings based on unnormalized $L_1$-Wasserstein distances and $L_2$ (Euclidean) distances on the right.", fig.height = 5, out.width="100%"}
+set.seed(1221)
+x <- seq(.005, .995, l = 150)
+n <- 100
+r <- .1
+f_m2.5 <- replicate(n, dbeta(x, runif(1, 1, 2), runif(1, 1, 2)))
+f_m1.5 <- replicate(n * r, runif(1, 0, .5) + dbeta(x, runif(1, 1, 2), runif(1, 1, 2)))
+f.5 <- cbind(f_m1.5, f_m2.5)
+d_w.5 <- wasser_dist(t(f.5), grid = x)
+d_l2.5 <- dist(t(f.5))
+mds_w.5 <- cmdscale(d_w.5)
+mds_l2.5 <- cmdscale(d_l2.5, k = 3)
+
+lbls <- c(rep(2, n * r), rep(1, n))
+
+pl_emb <- function(x, lbls,  lab1, lab2) {
+  ggplot(as.data.frame(x)) + geom_point(aes(x = V1, y = V2, color = as.factor(lbls)), size = .5) +
+    scale_color_manual(values = c(scales::alpha("grey", .4), "blue")) +
+    xlab(lab1) + ylab(lab2)
+}
+
+pl_emb_l2 <- 
+  plot_grid(plotlist = list(
+    pl_emb(mds_l2.5[,2:1], lbls, "MDS embedding 2", "MDS embedding 1"),
+    pl_emb(mds_l2.5[,c(3,1)], lbls, "MDS embedding 3", ""),
+    ggplot() + theme(panel.border = element_blank()),
+    pl_emb(mds_l2.5[,c(3,2)], lbls, "", "MDS embedding 2")
+  ),
+  nrow = 2
+)
+
+nic_ttl <- latex2exp::TeX("3D MDS embedding ($L_2$)")
+pl_ttl <- ggdraw() + draw_label(nic_ttl)
+pl_emb_l2 <- plot_grid(pl_ttl, pl_emb_l2, ncol = 1, rel_heights = c(0.1, 1))
+
+pl_emb_w <- plot_emb(mds_w.5[,1:2], color = as.factor(lbls)) +
+    scale_color_manual(values = c(scales::alpha("grey", .4), "blue")) +
+    theme(plot.title = element_blank()) +
+    xlab("MDS embedding 1") + 
+    ylab("MDS embedding 2")
+
+pl_ttl <- ggdraw() + draw_label("2D MDS emb. (Wasserstein)")
+pl_emb_w <- plot_grid(pl_ttl, pl_emb_w, ncol = 1, rel_heights = c(0.2, 1))
+
+plt_embs_l2_w <- 
+  plot_grid(plotlist = list(
+    pl_emb_w,
+    pl_emb_l2
+  ),
+  nrow = 2,
+  rel_heights = c(2, 3)
+)
+
+plt_f5 <- 
+  plot_funs(t(f.5), col = as.factor(lbls), args = rep(x, (r + 1) * n)) +
+    scale_color_manual(values = c(scales::alpha("grey", .4), "blue")) +
+    scale_x_continuous(name = "t", limits = c(0, 1)) +
+    ylab("x(t)") +
+    ggtitle("Functional data")
+  
+plt_exp2 <- plot_grid(
+  plotlist = list(
+    plt_f5,
+    plt_embs_l2_w
+  ),
+  nrow = 1
+)
+plt_exp2
+```
+
+As can be seen in Figure \ref{fig:shift-example}, both manifolds contain substantial shape variation that is identically structured, but those from $\Man$ are also shifted upwards by small amounts. Note that many shifted observations lie within the main bulk of the data on large parts of the domain. In the 2D embeddings based on unnormalized $L_1$-Wasserstein distances [@gangbo2019unnormalized] (a.k.a. "Earth Mover's Distance", top right) and 3D embeddings based on standard $L_2$ distances (bottom right), we see that this structure is captured with high accuracy, even though it is hardly visible in the functional data, with most anomalous observations clearly separated from the common manifold data, whose embeddings are concentrated on a narrow sub-region of the embedding space. An observation on $\Man$ which is very close to $\Min$, lying well within the main bulk of functional observations, also appears very close to $\Min$ in both embeddings. This example shows that the two functional manifolds do not need to be completely disjoint nor yield visually distinct observations for our approach to yield useful results. It also shows that the choice of an appropriate dissimilarity metric for the data can make a difference: a 2D embedding is sufficient for the more suitable Wasserstein distance which is designed for (unnormalized) densities (top right panel), while a 3D embedding is necessary for representing the relevant aspects of the data geometry if the embedding is based on the standard $L_2$ metric  (lower right panels). For a comparison with currently available outlier visualization methods for this example, see Figure \ref{fig:outliergram-ex5} in Appendix \ref{sec:compare-outliergram}.
+
+In summary, we propose that the manifold perspective allows to define and represent a very broad range of functional outlier scenarios and data generating processes. We argue that these properties make the geometrical approach very compelling for functional data, because it is flexible, conceptualizes outliers on a much more general level (for example, structural differences not in terms of shape) than before, and allows to theoretically assess a given setting.  
+Beyond its theoretical utility of providing a general notion of functional outliers, it has crucial practical implications: Outlier characteristics of functional data, in particular structural differences, can be represented and analysed using low dimensional representations provided by manifold learning methods, regardless of which functional properties define the "common" data manifold and which properties are expressed in structurally different observations. From a practical perspective, on-manifold outliers will appear "connected", whereas off-manifold outliers will appear "separated" in the embedding, and the clearer these structural differences are, the clearer the separation in the embedding will be. Note that this implies that shape outliers, which pose particular challenges to many previously proposed methods, will often be particularly easily detectable. 
+Moreover, all methods for outlier detection that have been developed for tabular data inputs can be (indirectly) applied to functional data as well based on this framework, simply by using the embedding coordinates as feature inputs: The embedding space $\mathcal{Y}$ is typically a low dimensional Euclidean space in which conventional outlier detection works well and the essential geometrical structure encoded in the pairwise functional distance matrix is conserved in these lower-dimensional embeddings. In the next section, we illustrate this practical utility in detail by extensive quantitative and qualitative analyses. 

@@ -1,0 +1,14 @@
+.Rproj.user
+.RData
+.Ruserdata
+report_initial-experiments_cache/
+report_initial-experiments_files/
+report_image-data_cache/
+report_image-data_files/
+*.html
+*.Rhistory
+.Rproj.user/
+.Rbuildignore
+batch_exp
+cache/
+fda-outlier.Rproj

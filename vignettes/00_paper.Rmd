@@ -1,0 +1,87 @@
+---
+output:
+  bookdown::pdf_document2:
+    toc: false
+    pagestyle: headings
+    includes:
+      before_body: abstract.tex
+      in_header:
+      - preamble.tex
+      - latex-math/basic-math.tex
+      - latex-math/basic-ml.tex
+      - latex-math/fda-math.tex
+    citation_package: natbib
+    fig_caption: yes
+    keep_tex: true
+  html_document2:
+    df_print: paged
+documentclass: llncs 
+classoption:
+  - runningheads
+bibliography: references.bib
+biblio-style: splncs04
+natbiboptions: "numbers,comma,sort,compress"
+vignette: |
+  %\VignetteIndexEntry{paper} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  echo = FALSE,
+  eval = TRUE,
+  comment = "#>"
+)
+
+src_pth <- strsplit(getwd(), "vignettes")[[1]][1]
+
+library(ggplot2)
+library(patchwork)
+library(kableExtra)
+library(cowplot)
+library(viridis)
+library(fda)
+library(fda.usc)
+library(fdaoutlier)
+library(parallel)
+library(dbscan)
+library(data.table)
+library(igraph)
+library(StatPerMeCo)
+library(pROC)
+library(cowplot)
+library(latex2exp)
+
+source(here::here("R/visualization_tools.R"))
+source(here::here("R/help_funs.R"))
+
+theme <- theme_bw() + theme(legend.position = "None")
+theme_set(theme)
+```
+
+```{r child = '01_introduction.Rmd'}
+```
+
+```{r child = '03_theory.Rmd'}
+```
+
+```{r child = '04_qual_analysis.Rmd'}
+```
+
+```{r child = '05_quant_experiments.Rmd'}
+```
+
+```{r child = '06_conclusion.Rmd'}
+```
+
+\appendix
+
+```{r child = '07_appendix.Rmd'}
+```
+
+\renewcommand\bibname{\leftline{References}}
+\setlength{\bibsep}{0.0pt}
+<div id="refs"></div>
+

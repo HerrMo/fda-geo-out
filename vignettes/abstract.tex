@@ -1,0 +1,31 @@
+\title{A geometric perspective on functional outlier detection}
+
+% \titlerunning{A geometric perspective on functional outlier detection}
+% If the paper title is too long for the running head, you can set
+% an abbreviated paper title here
+%
+
+\author{Anonymized for review}
+\author{Moritz Herrmann\inst{1}\orcidID{0000-0002-4893-5812} \and Fabian Scheipl\inst{1}\orcidID{0000-0001-8172-3603}}
+% \authorrunning{Anonymous et al.}
+ \authorrunning{M. Herrmann \and F. Scheipl}
+% First names are abbreviated in the running head.
+% If there are more than two authors, 'et al.' is used.
+
+%\institute{Anonymized for review}
+\institute{Department of Statistics, Ludwig-Maximilians-University\\ Ludwigstr. 33, 80539 Munich, Germany\\
+\email{moritz.herrmann@stat.uni-muenchen.de}\\
+\url{https://www.fda.statistik.uni-muenchen.de/index.html}}
+
+
+\maketitle
+
+\begin{abstract}
+We consider functional outlier detection from a geometric perspective, specifically: for functional datasets drawn from a functional manifold which is defined by the data's modes of variation in amplitude and phase.
+Based on this manifold, we develop a conceptualization of functional outlier detection that is more widely applicable and realistic than previously proposed taxonomies.
+Our theoretical and experimental analyses demonstrate several important advantages of this perspective:
+It considerably improves theoretical understanding and allows to describe and analyse complex functional outlier scenarios consistently and in full generality, by differentiating between structurally anomalous outlier data that are off-manifold and distributionally outlying data that are on-manifold but at its margins.
+This improves practical feasibility of functional outlier detection: We show that simple manifold learning methods can be used to reliably infer and visualize the geometric structure of functional datasets.
+We also show that standard outlier detection methods requiring tabular data inputs can be applied to functional data very successfully by simply using their vector-valued representations learned from manifold learning methods as input features.
+Our experiments on synthetic and real datasets demonstrate that this approach leads to outlier detection performances at least on par with existing functional data-specific methods in a large variety of settings, without the highly specialized, complex methodology and narrow domain of application these methods often entail.
+\end{abstract}

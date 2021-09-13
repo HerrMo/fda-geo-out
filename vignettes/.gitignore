@@ -1,0 +1,14 @@
+report_initial-experiments_cache/
+report_initial-experiments_files/
+report_image-data_cache/
+report_image-data_files/
+*.html
+*.R
+*.Rhistory
+.Rproj.user/
+vignettes/latex-math/
+00_paper.log
+00_paper.tex
+00_paper_cache/
+00_paper_files/
+mdpi.cls

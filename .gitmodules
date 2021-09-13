@@ -1,0 +1,3 @@
+[submodule "vignettes/latex-math"]
+	path = vignettes/latex-math
+	url = git@github.com:compstat-lmu/latex-math.git

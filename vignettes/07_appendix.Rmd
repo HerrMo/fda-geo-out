@@ -1,0 +1,390 @@
+\newpage
+
+# Appendix 
+
+## Formalizing phase variation scenarios{#sec:phase-var}
+
+**Phase variation - Case I:** The manifold $\mathcal{M} = \{x(t): x(t) = \theta_1 \varphi(t - \theta_2), \mathbf{\theta} = (\theta_1, \theta_2)' \in \pspace\}$, with $\varphi(.)$ the standard Gaussian pdf and $\pspace = [0.1, 2] \times [-2, 2]$, defines a functional data setting with independent amplitude and phase variation. Since there is a single manifold only, there are no structural novelties. Figure \ref{fig:phase-example} top depicts the functional observations on the left and a 2D embedding obtained with MDS on the right. Note, all of the curves are subject to amplitude and phase variation to varying extent, however, there are no clearly "outlying" or "outstanding" observations in terms of either amplitude or phase. This is reflected in the corresponding embedding, which does not show any clearly separated observations in the embedding space, indicating that there are no structurally different observations. The situation in the second case of phase-varying data, however, is different.  
+
+**Phase variation - Case II:**  The two manifolds $\Min = \{x(t): x(t) = \theta \varphi(t + 1), \theta \in \pspace\}$ and $\Man = \{x(t): x(t) = \theta \varphi(t), \theta \in \pspace\}$, with $\pspace = [0.1, 2]$, describe a similar scenario as before, however, there are two structurally different manifolds induced by the shift in the argument of $\varphi$. In contrast to the first case, there are on-manifold and off-manifold outliers. Figure \ref{fig:phase-example} mid depicts the functional observations and the corresponding embedding. Clearly, in this example few (blue) curves, the ones from $\Man$, show a horizontal shift compared to the normal data and consequently those few curves appear horizontally "outlying". Within the main data manifold, only on-manifold outliers in terms of amplitude exist. These aspects are reflected in the corresponding embedding: the low-dimensional representations of the blue curves are clearly separated from those of the main data in grey.  
+Of course such clear settings -- in particular phase varying functional data with fixed and distinct phase parameters -- will seldom be observed in practice. A more realistic example is given by $\Min = \{x(t): x(t) = \theta_1 \varphi(t - \theta_2), (\theta_1, \theta_2)' \in \Thin\}$ and $\Man = \{x(t): x(t) = \theta_1 \varphi(t - \theta_2), (\theta_1, \theta_2)' \in \Than\}$, with $\Thin = [0.1, 2] \times [-1.3, -0.7]$ and $\Than = [0.1, 2] \times [-0.5, 0.1]$. Here we have again two structurally different manifolds. This is more realistic, since the "phase parameters" $\theta_2$ are not fixed but are subject to random fluctuations. In addition, the structural difference induced by the phase parameters is much smaller. Considering Figure \ref{fig:phase-example} bottom, again this is reflected in the embedding: there are two separable structures, however the differences are not as clear as in the second example above.  
+The three examples together show that the less similar the processes are and/or the less variability there is within the phase parameters defining the manifolds, the clearer structural differences induced by horizontal variation become visible in the embeddings.  
+
+```{r, echo = FALSE, eval = TRUE}
+set.seed(1221)
+x <- seq(-5, 5, l = 50)
+n <- 100
+
+f.1 <- replicate(n, runif(1, 0.1, 2) * dnorm(x, runif(1, -2, 2)))
+d_l2 <- dist(t(f.1))
+mds.1 <- cmdscale(d_l2)
+
+plt1 <- 
+  plot_grid(plotlist = list(
+    plot_funs(t(f.1), col = as.factor(rep(1, n)), args = rep(x, n)) +
+      scale_color_manual(values = c(scales::alpha("grey", .7))) +
+      scale_x_continuous(name = "t", limits = c(-5, 5)) +
+      ylab("x(t)") +
+      ggtitle("Functional data"),
+    plot_emb(mds.1, color = as.factor(rep(1, n))) +
+      scale_color_manual(values = c(scales::alpha("grey", .7))) +
+      xlab(paste("MDS embedding 1")) + 
+      ylab(paste("MDS embedding 2")) +
+      ggtitle("MDS embedding")
+))
+```
+
+
+```{r, echo = FALSE, eval = TRUE}
+set.seed(1221)
+x <- seq(-5, 5, l = 50)
+n <- 100
+r <- .1
+f_m2.2 <- replicate(n, runif(1, 0.1, 2) * dnorm(x, -1))
+f_m1.2 <- replicate(n * r,  runif(1, 0.1, 2) * dnorm(x, 0))
+f.2 <- cbind(f_m1.2, f_m2.2)
+d_l2 <- dist(t(f.2))
+mds.2 <- cmdscale(d_l2)
+
+lbls <- c(rep(2, n * r), rep(1, n))
+
+plt2 <- 
+  plot_grid(plotlist = list(
+    plot_funs(t(f.2), col = as.factor(lbls), args = rep(x, (r + 1) * n)) +
+      scale_color_manual(values = c(scales::alpha("grey", .4), "blue")) +
+      scale_x_continuous(name="t", limits=c(-5, 5)) +
+      ylab("x(t)") +
+      ggtitle("Functional data"),
+    plot_emb(mds.2, color = as.factor(lbls)) +
+      scale_color_manual(values = c(scales::alpha("grey", .4), "blue")) +
+      xlab(paste("MDS embedding 1")) + 
+      ylab(paste("MDS embedding 2")) +
+      ggtitle("MDS embedding")
+))
+```
+
+```{r, eval = TRUE, echo = FALSE, fig.cap="\\label{fig:phase-example}Functional data with phase variation and different levels of structural difference. Top: Scenario with no off-manifold outliers. Mid: Scenario with clear off-manifold outliers. Bottom: Intermediate scenario.", fig.height = 7.5, out.width="100%"}
+set.seed(1221)
+x <- seq(-5, 5, l = 50)
+n <- 100
+r <- .1
+f_m2.3 <- replicate(n, runif(1, 0.1, 2) * dnorm(x, runif(1, -1.3, -0.7)))
+f_m1.3 <- replicate(n * r,  runif(1, 0.1, 2) * dnorm(x, runif(1, -.5, 0.1)))
+f.3 <- cbind(f_m1.3, f_m2.3)
+d_l2 <- dist(t(f.3))
+mds.3 <- cmdscale(d_l2)
+
+plt3 <- 
+  plot_grid(plotlist = list(
+    plot_funs(t(f.3), col = as.factor(lbls), args = rep(x, (r + 1) * n)) +
+      scale_color_manual(values = c(scales::alpha("grey", .4), "blue")) +
+      scale_x_continuous(name = "t", limits = c(-5, 5)) +
+      ylab("x(t)") +
+      ggtitle("Functional data"),
+    plot_emb(mds.3, color = as.factor(lbls)) +
+      scale_color_manual(values = c(scales::alpha("grey", .4), "blue")) +
+      xlab(paste("MDS embedding 1")) + 
+      ylab(paste("MDS embedding 2")) +
+      ggtitle("MDS embedding")
+))
+
+plot_grid(plotlist = list(plt1, plt2, plt3), ncol = 1)
+```
+
+## Sensitivity analysis{#sec:exps:sensitivity}
+
+The differences in complexity among the ECG and the other four real data sets become apparent in Figure \ref{fig:expl-variation} as well, which shows how the goodness of fit (GOF) of the embeddings is affected by their dimensionality. For the $L_2$ metric, a goodness of fit over 0.9 is achieved with two to three embedding dimensions for the less complex data sets. Moreover, all of them reach a saturation point at five dimensions. This is in contrast to the ECG data, where the first five embedding dimensions lead to a goodness of fit of 0.8. Moreover, the ranking induced by LOF scores is very robust to the number of embedding dimensions. As Table \ref{tab:cor} shows, the rank correlations between LOF scores based on five and LOF scores based on 20 embedding dimensions are very high for all data sets.
+
+```{r, echo=FALSE, fig.cap="\\label{fig:expl-variation} Goodness of fit (GOF) of different embedding dimensions for the five considered real datasets and $L_{0.5}, L_1, L_2, L_4, L_{10},$ and unnormalized $L_1$-Wasserstein metrics.", fig.height=6, out.width="100%"}
+
+### with non-eucl. metrics
+source(here::here("R/exp_sensitivity_extended.R"))
+
+dt_gof <- rbindlist(l_expl_vari, idcol = "Metric")
+dt_gof$Metric <- as.factor(dt_gof$Metric)
+dt_gof$Metric <- ordered(dt_gof$Metric, c("l.5", "l1", "l2", "l4", "l10", "wasser"))
+levels(dt_gof$Metric) <- c("L_0.5", "L_1", "L_2", "L_4", "L_10", "Wasserstein")
+setnames(dt_gof, "data", "Data")
+
+ggplot(data = dt_gof, aes(as.numeric(dims), expl_variation)) +
+  geom_point(aes(col = Data)) +
+  geom_line(aes(lty = Data, col = Data)) +
+  facet_wrap(~ Metric, nrow = 3) +
+  theme(legend.position = "top") +
+  ylab("GOF") +
+  xlab("Embedding dimension")
+```
+
+```{r, echo=FALSE}
+### with non-eucl. metrics
+
+dt_cors_t <- t(dt_cors[, .SD, .SDcols = dat_sets])
+colnames(dt_cors_t) <- dt_cors$Dims
+
+caption = "Spearman correlation between LOF scores based on embeddings of different dimensionality for the 5 considered real datasets and metrics $L_{0.5}$, $L_1$, $L_2$, $L_4$, $L_{10}$, and unnormalized $L_1$-Wasserstein. MDS embeddings with 5 dimensions are compared to embeddings with 2 (2vs5) and 20 (5vs20) dimensions."
+metr_header <- c("", "$L_{0.5}$" = 2, "$L_1$" = 2, "$L_2$" = 2, "$L_4$" = 2, "$L_{10}$" = 2,"Wasserstein" = 2)
+algn <- paste0("r", paste0(rep("c", 12), collapse = ""))
+
+kbl(dt_cors_t, booktabs = TRUE, caption = caption, align = algn, label = "cor") %>% add_header_above(metr_header, escape = FALSE)
+```
+
+\newpage
+
+## Quantitative results on `fdaoutlier` package DGPs {#sec:quant-fdaoutlier} 
+
+The simulation models presented by Ojo et al. [@ojo2021outlier] cover different outlier scenarios: vertical shifts (model 1), isolated outliers (model 2), partial magnitude outliers (model 3), phase outliers (model 4), various kinds of shape outliers (models 5 - 8) and amplitude outliers (model 9). A detailed description can be found in the vignette\footnote{\url{https://cran.r-project.org/web/packages/fdaoutlier/vignettes/simulation_models.html}} accompanying their R package.  The same methods and performance evaluation approach as in section \ref{sec:exps:performance} are used in the following.  
+```{r exp-fdaoutlier-perf,  fig.cap="\\label{fig:perf-fdaoutlier}Distribution of AUC over the 500 replications for the different outlier detection methods, simulation models (Mod) from package fdaoutier and outlier ratios $r$.", fig.height=7, out.width="100%"}
+load(here::here("data/res_fdaoutlier_batch_2021-07-28.RData"))
+
+res <- res_fdaoutlier
+
+res_md <- res[algorithm == "md_wrapper"]
+res_rest <- res[algorithm != "md_wrapper"]
+res_rest <- res_rest[!(algorithm == "d_lof" & mod %in% c(1:4, 8:9))]
+
+res_rest <- cbind(res_rest[, -7], do.call(rbind, res_rest$result))
+res_long <- melt(res_rest, id.vars = 1:6, measure.vars = 7:8, 
+                 variable.name = "Measure", value.name = "Performance")
+
+fac_col <- c("algorithm", "mod", "r_out")
+res_long[, (fac_col) := lapply(.SD, as.factor), .SDcols = fac_col]
+
+levels(res_long$algorithm) <- c("deriv", "DO", "MDS+LOF", "TV", "LOF")
+levels(res_long$Measure) <- c("AUC", "TPR")
+levels(res_long$r_out) <- paste(c("n_in = 1000, ", "n_in = 100, ", "n_in = 100, "),
+                                 paste0("r = ", levels(res_long$r_out)))
+levels(res_long$mod) <- paste0("Mod-", 1:9)
+
+res_long$algorithm <- ordered(res_long$algorithm, 
+                              levels =  c("LOF", "MDS+LOF",  "deriv", "TV", "DO"))
+
+meth_colors <- c("navy", "dodgerblue4", "deepskyblue3", "palegreen3", "yellow")
+
+setnames(res_long, c("algorithm", "mod"), c("Method", "Model"))
+
+ggplot(res_long[Measure == "AUC"]) +
+  geom_boxplot(aes(x = Model, y = Performance, color = Method)) +
+  facet_wrap(~ r_out, dir = "v") +
+  theme(legend.position = "top") +
+  ylab("AUC") +
+  xlab("") +
+  scale_color_manual(values = meth_colors)
+```
+
+As Figure \ref{fig:perf-fdaoutlier} shows, (almost) perfect performance is achieved by at least two methods for models 1, 3, 4, 8, and 9; DO shows almost perfect performance for all models except model 1. 
+For models 2, 5, 6, and 7 the methods based on the geometric approaches do not perform equally well (as does TV). However, as outlined in section \ref{sec:exps:general-dists}, perfect performance can be achieved for model 2 by using $L_{10}$ distances instead of $L_{2}$ distances.  
+Furthermore, for models 5, 6, and 7 it has to be taken into account that the AUC values only reflect detection of "true outliers", which can now -- given the geometric perspective -- be specified more precisely as off-manifold outliers (observations from $\Man$). However, this does not take into account possible on-manifold outliers. Due to their distributional nature, by chance some on-manifold outliers (observations on $\Man$) can be "more outlying" than some of the off-manifold outliers and thus correctly obtain higher LOF scores. However, such cases are not correctly reflected in the performance assessment approach, as -- in contrast to off-manifold outliers -- such on-manifold outliers are not labeled as "true outliers". The observed lower performance in terms of AUC thus can simply mean that there are on-manifold outliers obtaining relatively high LOF scores. In particular, this also does not imply that off-manifold outliers fail to be separated in a subspace of the embedding, as will be outlined appendix \ref{sec:sms} in more detail, nor that perfect AUC performance cannot be obtained via the geometric approaches for these settings. If the geometric approach is applied to the derivatives instead (depicted in Figure \ref{fig:perf-fdaoutlier} as "deriv") almost perfect performances can be achieved. Obviously, functions of the same shape (i.e. all observations from $\Min$) are very similar on the level of derivatives regardless of how strongly dispersed they are in terms of vertical shift.
+
+
+## Comparing embeddings, `roahd::outliergram`, `fdaoutlier::msplot` {#sec:compare-outliergram} 
+
+Figure \ref{fig:outliergram-real} shows results for the MBD-MEI "Outliergram" by Aribas-Gil & Romo [@arribas2014shape; implementation: @roahd] for shape outlier detection and the magnitude-shape plot method of Dai & Genton [@dai2018multivariate] for the example data sets shown in Figures \ref{fig:ecg} and \ref{fig:real-dat}.
+
+Both of these visualization methods mostly fail to identify shift outliers (by design, in the case of the outliergram). The outliergram tends to mislabel very central observations as outliers in data sets with little shape variability (e.g. the "shape outliers" detected by MBD-MEI in the central region of the Tecator data) and fails to detect even egregious shape outliers in data sets with high variability (e.g. not a single MBD-MEI outlier for ECG) as well as shape outliers that are also outlying in their level (e.g. the 3 shape outliers identified by `msplot` in the upper region of the Tecator data). Note that some central functions of the Spanish weather data, which are labeled as outliers by the magnitude-shape-plot (and partly by the outliergram), are also reflected in the 2D embedding in Figure \ref{fig:real-dat}. They are fairly numerous relative to the overall sample size and are very similar to each other. As such, they form a clearly defined separate cluster within the data, which can be seen in the middle bottom part of the embedding.
+
+Figure \ref{fig:outliergram-ex5} shows the results for the synthetic data example of Figure  \ref{fig:shift-example} with 10 true outliers, where the MS plot yields 6 false positives and only 3 true positives, while the Outliergram fails to detect even a single outlier.
+
+```{r fig-outliergram-ex5, fig.height=2.5, fig.width = 8, out.width="100%", fig.pos="H", fig.cap="\\label{fig:outliergram-ex5} From left: data with true outliers in blue, data with detected outliers in color, magnitude-shape plot of mean directional outlyingness (MO) versus variability of directional outlyingness (VO), outliergram of modified epigraph index (MEI) versus modified band depth (MBD) with inlier region in grey.", warning= FALSE}
+source(here::here("R/exp_outliergram_msplot.R"))
+plt_f5 + plot_compare_real(t(f.5), "Detected outliers") + plot_layout(widths = c(1, 3))
+```
+
+```{r fig-outliergram-real, fig.height=12, fig.width = 8, out.width="100%", fig.pos="H", fig.cap="\\label{fig:outliergram-real} Left column: data, middle column: magnitude-shape plots of mean directional outlyingness (MO) versus variability of directional outlyingness (VO), right column: Outliergram of modified epigraph index (MEI) versus modified band depth (MBD) with inlier region in grey. Curves and points are colored according to outlier status as diagnosed by \\texttt{fdaoutlier::msplot} and/or \\texttt{roahd::outliergram}.", warning= FALSE}
+plt_outliergram_real[[1]] /
+plt_outliergram_real[[2]] /  
+plt_outliergram_real[[3]] /
+plt_outliergram_real[[4]] /  
+plt_outliergram_real[[5]]  
+```
+
+\newpage
+
+## In-depth analysis of simulation model 7{#sec:sms}
+
+The analysis of the ECG data in section \ref{sec:exps:qual-analysis} has shown that embeddings can reveal much more (outlier) structure than can be represented by scores and labels. To illustrate the effects described in appendix \ref{sec:quant-fdaoutlier}, we conduct a similar qualitative analysis for an example data set with observations sampled from simulation model 7, see Figure \ref{fig:mod7}. The data set consists of 100 observations with 10 off-manifold or -- in more informal terms: "true" -- outliers. The functions are evaluated on 50 grid points. The analysis shows that a quantitative performance assessment alone may yield misleading results and again emphasizes the practical value of the geometric perspective and low dimensional embeddings.
+
+```{r sms, echo=FALSE}
+n_in <- 100
+p <- 50
+r_out <- 0.1
+
+sms <- simulation_model7(n = n_in, p = p, outlier_rate = r_out, plot = FALSE, seed = 34) # seed 34
+
+# put outliers at the end to ease handling
+sms$data <- sms$data[c(which(!(1:100 %in% sms$true_outliers)), sms$true_outliers), ]
+sms$true_outliers <- 91:100
+sms_dist <- dists(sms$data)
+sms_emb <- embed(sms_dist, "mds", k = 5)
+sms_scores <- lof(sms_emb, minPts = 75)
+```
+
+```{r sms-scatter, echo=FALSE, message=FALSE, fig.cap="\\label{fig:mod7}Model 7 data: Scatterplotmatrix of all 5 MDS embedding dimensions and curves, lighter colors for higher LOF score of 5D embeddings. True outliers depicted as triangles. Note that the true outliers are clearly separated from the rest of the data in embedding subspace 3vs4.", fig.height=6, out.width="100%", fig.pos="H"}
+plt_sms_embs <- list()
+lof_5d_sms <- lof(sms_emb)
+
+# almost constant darkblue by default otherwise:
+scale_viridis_stretched <-  function(...) scale_color_viridis_c(..., values = seq(0,1, l = 10)^2)
+
+for (i in 1:4) {
+  for(j in (i+1):5) {
+    p <- plot_emb_temp(sms_emb[, c(j, i)], col = lof_5d_sms, pch = ifelse(1:100 %in% sms$true_outliers, 3, 1)) + 
+      scale_viridis_stretched() + 
+      ggtitle("") +
+      xlab(paste("MDS ", j)) + ylab(paste("MDS ", i))
+    plt_sms_embs <- append(plt_sms_embs, list(p))
+  }
+}
+plt_sms_layout <- " 
+ABCD
+#EFG
+KKHI
+KKLJ
+"
+plt_sms_matrix <- 
+  plt_sms_embs[[1]] + plt_sms_embs[[2]] + plt_sms_embs[[3]] + plt_sms_embs[[4]] +
+  plt_sms_embs[[5]] + plt_sms_embs[[6]] + plt_sms_embs[[7]] +
+  plt_sms_embs[[8]] + plt_sms_embs[[9]] +
+  plt_sms_embs[[10]] +
+  plot_funs(sms$data, col = lof_5d_sms) + 
+    scale_x_continuous(name = "t", labels = seq(0, 1, length.out = 6)) +
+    ylab("x(t)") +
+    scale_viridis_stretched("LOF score") + 
+    theme(legend.position = "right", legend.direction = "vertical") +
+  guide_area() + plot_layout(design = plt_sms_layout, guides = "collect")
+plt_sms_matrix
+```
+
+First of all, note that the AUC computed for this specific data set is `r  round(auc(roc(1:100 %in% sms$true_outliers, sms_scores, direction = "<")), 2)`, thus close to the median AUC value for LOF applied to MDS embeddings of model 7 data, as depicted in Figure \ref{fig:perf-fdaoutlier}. Nevertheless, the "true outliers" are clearly separable in a 5D MDS embedding. As Figure \ref{fig:mod7} shows, they are clearly separable in the subspace spanned by the third and fourth embedding dimension. Note, moreover, that there is an outlying observation with an extreme shift, which also obtains a high LOF score. This observation is not labeled as a "true outlier" as it stems from $\Min$. This example shows that evaluation approaches for outlier detection methods which are based on "true outliers" may not always reflect the outlier structure adequately and may result in misleading conclusions. However, those approaches are frequently used to compare and assess different outlier detection methods. Again, this illustrates the additional value low dimensional embeddings have for outlier detection as such aspects become accessible.  
+Finally, note that DO/MS-plots are not sensitive to vertical shift outliers as the extreme shift outlier is neither scored high based on DO nor labeled as an outlier based on the MS-plot, see Figure \ref{fig:sms-compare}.
+
+```{r sms-funs, echo=FALSE, message=FALSE, fig.cap="\\label{fig:sms-compare}Model 7 data: LOF on MDS embeddings in contrast to directional outlyingness.", fig.height = 5, out.width="100%"}
+franks <- frank(sms_emb, ndim = 5, k = 5)
+plt_funs_lof_outs <- plot_funs(sms$data[franks %in% 1:10, ]) 
+plt_funs_lof_scores <- plot_funs(sms$data, col = lof(sms_emb)) + scale_viridis_stretched(guide = "none")
+
+do <- msplot(sms$data, plot = FALSE)  
+plt_funs_do_scores <- plot_funs(sms$data, col = do$var_outlyingness) + scale_color_viridis_c(option = "magma")
+plt_funs_do_scores2 <- plot_funs(sms$data[rank(-do$var_outlyingness) %in% 1:10, ])
+plt_funs_do_outs <- plot_funs(sms$data[do$outliers, ])
+
+plt_lst <- list(
+  plt_funs_lof_outs + ggtitle("A: 10 most outlying curves by LOF \n scores based on 5D embedding") + ylim(range(sms$data)) + 
+    scale_x_continuous(name = "t", labels = seq(0, 1, length.out = 6)) +
+    ylab("x(t)"),
+  plt_funs_do_scores + ggtitle("B: Model 7 curves coloured by var- \n iation of directional outlyingness") + 
+    scale_x_continuous(name = "t", labels = seq(0, 1, length.out = 6)) +
+    ylab("x(t)"),
+  plt_funs_do_scores2 + ggtitle("C: 10 most outlying curves by var- \n iation of directional outlyingness") + 
+    scale_x_continuous(name = "t", labels = seq(0, 1, length.out = 6)) +
+    ylab("x(t)") +
+    ylim(range(sms$data)),
+  plt_funs_do_outs + 
+    ggtitle(paste0("D: The ", length(do$outliers), " observations labeled as \n outliers based on MS-Plot")) +
+    ylim(range(sms$data)) + 
+    scale_x_continuous(name = "t", labels = seq(0, 1, length.out = 6)) +
+    ylab("x(t)")
+)
+
+plot_grid(
+  plotlist = plt_lst,
+  ncol = 2
+)
+```
+
+\newpage
+
+## Examples for DGPs used for quantitative evaluation{#app:dgp-ex}
+
+Depicted in Figure \ref{fig:dgp-examples} are two example data sets for each of the data generating processes (DGP) used in section \ref{sec:exps:performance} for the comparison of the different outlier detection methods.
+
+```{r, echo=FALSE, message=FALSE, fig.cap="\\label{fig:dgp-examples} Example datasets for the DGPs used in the simulation study (2 each). Inliers in black, outliers in red. Outlier ratio 0.1, $n = 100$.", fig.height = 6.5, fig.pos="H"}
+source(here::here("R/data_generating_processes.R"))
+
+set.seed(1312)
+n <- 100
+r_out <- .1
+dgps <- paste("cDGP", c("fab1", "fab2", "fdao1", "fdao2"), sep = "_")[c(3:4, 1:2)]
+p <- list()
+for (dgp in dgps) {
+  for (rep in 1:2) {
+    ex <- out_data(dgp, n = n, r_out = r_out, p = 150)
+    p <- append(p, 
+                list(
+                  plot_funs(ex$fun_obs, col = factor(ex$out_labels)) +
+                    scale_x_continuous(name = "t", 
+                                       breaks = c(0, 75, 150),
+                                       labels = seq(0, 1, length.out = 3)) +
+                    ylab("x(t)") +
+                    scale_color_manual(values = scales::alpha(c("black", "red"), .3)) +
+                    ggtitle(switch(dgp, 
+                                   cDGP_fab1 = "DGP 3",
+                                   cDGP_fab2 = "DGP 4",
+                                   cDGP_fdao1 = "DGP 1",
+                                   cDGP_fdao2 = "DGP 2"))))
+  }
+} 
+
+(p[[1]] + p[[2]]) /
+  (p[[3]] + p[[4]]) /
+  (p[[5]] + p[[6]]) /
+  (p[[7]] + p[[8]])
+  
+```
+
+\newpage
+
+## Arrowhead data{#app:arrow}
+
+Depicted in Figure \ref{fig:arrowhead} are the ArrowHead data used in section \ref{sec:exps:general-dists}. 
+
+```{r arrowhead, echo = FALSE, fig.cap = "\\label{fig:arrowhead}ArrowHead data. Top: The complete dataset. Mid and bottom: Two example outlier datasets. Inliers from class 'Avonlea' in black, outliers sampled from classes 'Clovis' and 'Mix' in red. Outlier ratio 0.1.", fig.height = 6.5, fig.pos="H"}
+arr_te <- read.table(here::here("data/raw/ArrowHead_TEST.txt"))
+arr_tr <- read.table(here::here("data/raw/ArrowHead_TRAIN.txt"))
+
+arr <- rbind(arr_te, arr_tr)
+
+dat_in <- arr[arr$V1 == 0, ]
+dat_out <- arr[arr$V1 != 0, ]
+
+# remove label independent structural outliers
+# - in all three classes there a observations which can be considered structural anomalies
+# - need to be removed if performance assessment is based on class label information
+dat_in <- dat_in[-c(17, 40, 45), ]
+dat_outs <- dat_out[-c(65, 81, 93, 122), ]
+
+lbls <- rbind(dat_in, dat_outs)[, 1]
+lbls <- as.factor(lbls)
+levels(lbls) <- c("Avonlea", "Clovis", "Mix")
+full_dat <- rbind(dat_in, dat_outs)[, -1]
+
+p_full <- 
+  plot_funs(full_dat, col = lbls) +
+  theme(legend.position = "top") +
+  xlab("t") +
+  ylab("x(t)") + 
+  guides(colour = guide_legend("Type")) +
+  scale_color_manual(values = c(colorspace::qualitative_hcl(3, "Dynamic")[1:3], alpha("black", .5)))
+
+n_out <- nrow(dat_outs)
+n_in <- nrow(dat_in)
+
+temp_fun <- function() {
+  smpl <- sample(seq_len(n_out), round(n_in * 0.1))
+
+  dat_in <- dat_in[, -1]
+  dat_outs <- dat_outs[, -1]
+  out_smpl <- dat_outs[smpl, ]
+  dat <- rbind(dat_in, out_smpl)
+  
+  out_lbls <- as.factor(c(rep(0, nrow(dat_in)), rep(1, nrow(out_smpl))))
+  
+    plot_funs(dat, col = out_lbls) +
+    xlab("t") +
+    ylab("x(t)") +
+    scale_color_manual(values = scales::alpha(c("black", "red"), .3))
+}
+p_outs_1 <- temp_fun()
+p_outs_2 <- temp_fun()
+
+plot_grid(p_full, p_outs_1, p_outs_2, nrow = 3, rel_heights = c(1.25, 1, 1))
+```
