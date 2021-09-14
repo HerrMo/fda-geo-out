@@ -128,7 +128,7 @@ plt_metrics_arrow <-
     ggtitle(nic_ttl)
 ```
 
-```{r metric-plts, fig.cap="\\label{fig:metric-vs}Comparing the effects of different distance measures. Depicted are the distributions of AUC over 500 replications for LOF based on MDS embeddings computed with the respective distance measures for different outlier ratios $r$. \\textbf{A}: Comparing $L_{10}$ and $L_2$ metric on a dataset with isolated outliers generated via simulation model 2 from package fdaoutlier. \\textbf{B}: Comparing DTW, $L_2$, and unnormalized $L_1$-Wasserstein distance measures on real dataset ArrowHead. Note: the DTW distance is not a  metric.", fig.height=5, out.width="100%"}
+```{r metric-plts, fig.cap="\\label{fig:metric-vs}Comparing the effects of different distance measures. Depicted are the distributions of AUC over 500 replications for LOF based on MDS embeddings computed with the respective distance measures for different outlier ratios $r$. \\textbf{A}: Comparing $L_{10}$ and $L_2$ metric on a data set with isolated outliers generated via simulation model 2 from package fdaoutlier. \\textbf{B}: Comparing DTW, $L_2$, and unnormalized $L_1$-Wasserstein distance measures on real data set ArrowHead. Note: the DTW distance is not a  metric.", fig.height=5, out.width="100%"}
 plot_grid(plotlist = list(plt_metrics_isolates, plt_metrics_arrow), nrow = 2, labels = c("A", "B"))
 
 ```

@@ -95,7 +95,7 @@ plot_grid(plotlist = list(plt1, plt2, plt3), ncol = 1)
 
 The differences in complexity among the ECG and the other four real data sets become apparent in Figure \ref{fig:expl-variation} as well, which shows how the goodness of fit (GOF) of the embeddings is affected by their dimensionality. For the $L_2$ metric, a goodness of fit over 0.9 is achieved with two to three embedding dimensions for the less complex data sets. Moreover, all of them reach a saturation point at five dimensions. This is in contrast to the ECG data, where the first five embedding dimensions lead to a goodness of fit of 0.8. Moreover, the ranking induced by LOF scores is very robust to the number of embedding dimensions. As Table \ref{tab:cor} shows, the rank correlations between LOF scores based on five and LOF scores based on 20 embedding dimensions are very high for all data sets.
 
-```{r, echo=FALSE, fig.cap="\\label{fig:expl-variation} Goodness of fit (GOF) of different embedding dimensions for the five considered real datasets and $L_{0.5}, L_1, L_2, L_4, L_{10},$ and unnormalized $L_1$-Wasserstein metrics.", fig.height=6, out.width="100%"}
+```{r, echo=FALSE, fig.cap="\\label{fig:expl-variation} Goodness of fit (GOF) of different embedding dimensions for the five considered real data sets and $L_{0.5}, L_1, L_2, L_4, L_{10},$ and unnormalized $L_1$-Wasserstein metrics.", fig.height=6, out.width="100%"}
 
 ### with non-eucl. metrics
 source(here::here("R/exp_sensitivity_extended.R"))
@@ -121,7 +121,7 @@ ggplot(data = dt_gof, aes(as.numeric(dims), expl_variation)) +
 dt_cors_t <- t(dt_cors[, .SD, .SDcols = dat_sets])
 colnames(dt_cors_t) <- dt_cors$Dims
 
-caption = "Spearman correlation between LOF scores based on embeddings of different dimensionality for the 5 considered real datasets and metrics $L_{0.5}$, $L_1$, $L_2$, $L_4$, $L_{10}$, and unnormalized $L_1$-Wasserstein. MDS embeddings with 5 dimensions are compared to embeddings with 2 (2vs5) and 20 (5vs20) dimensions."
+caption = "Spearman correlation between LOF scores based on embeddings of different dimensionality for the 5 considered real data sets and metrics $L_{0.5}$, $L_1$, $L_2$, $L_4$, $L_{10}$, and unnormalized $L_1$-Wasserstein. MDS embeddings with 5 dimensions are compared to embeddings with 2 (2vs5) and 20 (5vs20) dimensions."
 metr_header <- c("", "$L_{0.5}$" = 2, "$L_1$" = 2, "$L_2$" = 2, "$L_4$" = 2, "$L_{10}$" = 2,"Wasserstein" = 2)
 algn <- paste0("r", paste0(rep("c", 12), collapse = ""))
 
@@ -297,7 +297,7 @@ plot_grid(
 
 Depicted in Figure \ref{fig:dgp-examples} are two example data sets for each of the data generating processes (DGP) used in section \ref{sec:exps:performance} for the comparison of the different outlier detection methods.
 
-```{r, echo=FALSE, message=FALSE, fig.cap="\\label{fig:dgp-examples} Example datasets for the DGPs used in the simulation study (2 each). Inliers in black, outliers in red. Outlier ratio 0.1, $n = 100$.", fig.height = 6.5, fig.pos="H"}
+```{r, echo=FALSE, message=FALSE, fig.cap="\\label{fig:dgp-examples} Example data sets for the DGPs used in the simulation study (2 each). Inliers in black, outliers in red. Outlier ratio 0.1, $n = 100$.", fig.height = 6.5, fig.pos="H"}
 source(here::here("R/data_generating_processes.R"))
 
 set.seed(1312)
@@ -337,7 +337,7 @@ for (dgp in dgps) {
 
 Depicted in Figure \ref{fig:arrowhead} are the ArrowHead data used in section \ref{sec:exps:general-dists}. 
 
-```{r arrowhead, echo = FALSE, fig.cap = "\\label{fig:arrowhead}ArrowHead data. Top: The complete dataset. Mid and bottom: Two example outlier datasets. Inliers from class 'Avonlea' in black, outliers sampled from classes 'Clovis' and 'Mix' in red. Outlier ratio 0.1.", fig.height = 6.5, fig.pos="H"}
+```{r arrowhead, echo = FALSE, fig.cap = "\\label{fig:arrowhead}ArrowHead data. Top: The complete data set. Mid and bottom: Two example outlier data sets. Inliers from class 'Avonlea' in black, outliers sampled from classes 'Clovis' and 'Mix' in red. Outlier ratio 0.1.", fig.height = 6.5, fig.pos="H"}
 arr_te <- read.table(here::here("data/raw/ArrowHead_TEST.txt"))
 arr_tr <- read.table(here::here("data/raw/ArrowHead_TRAIN.txt"))
 
