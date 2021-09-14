@@ -14,8 +14,8 @@ Some of the examples and results are computed directly in the Rmd files in folde
     - exp_quant_complex_batch.R (results depicted in Figure 9) 
     - exp_l2vsl10_batch.R (results depicted in Figure 10 A)
     - exp_arrowhead_batch.R (results depicted in Figure 10 B)
-    - exp_quant_complex_ui.R (results depicted in Figure 11)
-  - Appendix
+    - exp_quant_complex_ui_batch.R (results depicted in Figure 11)
+  - appendix
     - 07_appendix.Rmd
     - exp_sensitivity_extended.R (Appendix B)
     - exp_fdaoutlier_batch.R (Appendix C)
