@@ -7,9 +7,9 @@ output:
       before_body: abstract.tex
       in_header:
       - preamble.tex
-      - latex-math/basic-math.tex
-      - latex-math/basic-ml.tex
-      - latex-math/fda-math.tex
+      - basic-math.tex
+      - basic-ml.tex
+      - fda-math.tex
     citation_package: natbib
     fig_caption: yes
     keep_tex: true
