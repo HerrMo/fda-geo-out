@@ -14,7 +14,7 @@ regis <- makeExperimentRegistry("batch_exp/exp_fda_out",
 
 # 1 Synthetic problems -------------------------------------------------------------------------------------------------
 
-meths <- c("w_lof", "mds_lof", "do", "tv", "md")
+meths <- c("w_lof", "mds_lof", "do", "tv")
 mods <- paste("cDGP", c("fab1", "fab2", "fdao1", "fdao2"), sep = "_")
 
 data_wrapper <- function(data, job, ...) {
