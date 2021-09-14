@@ -76,6 +76,12 @@ theme_set(theme)
 ```{r child = '06_conclusion.Rmd'}
 ```
 
+\textit{Acknowledgements}  
+This work has been funded by the German Federal Ministry of Education and Research (BMBF) under Grant No. 01IS18036A. The authors of this work take full responsibility for its content.
+
+\textit{Reproducibility}  
+All R code and data to fully reproduce the results are freely available on GitHub: \url{https://github.com/HerrMo/fda-geo-out}.
+
 \appendix
 
 ```{r child = '07_appendix.Rmd'}
