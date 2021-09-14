@@ -25,6 +25,8 @@ vignette: |
   %\VignetteIndexEntry{paper} %\VignetteEngine{knitr::rmarkdown} %\VignetteEncoding{UTF-8}
 ---
 
+<!-- rmarkdown::render("vignettes/00_paper.Rmd", output_format = latex_document(number_sections = TRUE, citation_package = "natbib", includes = list(in_header = c("preamble.tex", "fda-math.tex"), before_body = "abstract.tex"))) -->
+
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
