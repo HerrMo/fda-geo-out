@@ -1,6 +1,10 @@
 # A Geometric Perspective On Functional Outlier Detection 
 
-Code and data to reproduce the results presented in the paper *A Geometric Perspective On Functional Outlier Detection* by Herrmann and Scheipl.
+Code and data to reproduce the results presented in the paper *A Geometric Perspective On Functional Outlier Detection* by Herrmann and Scheipl:
+
+Herrmann, M., Scheipl, F.: A Geometric Perspective On Functional Outlier Detection. https://arxiv.org/abs/2109.06849 (2021)
+
+
 The full paper can be reproduced with the 00_paper.Rmd in the vignettes folder.
 
 Some of the examples and results are computed directly in the Rmd files in folder vignettes, others are (partly) outsourced to specific R files in folder R:
